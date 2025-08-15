@@ -81,7 +81,7 @@ class App extends React.Component {
       return css;
     })();
 
-    const { review, history, ...props } = this.props;
+    const { review, history } = this.props;
     const isReviewMode = review.get('on');
     let screenNode;
     let keyboardNode;
@@ -137,31 +137,31 @@ class App extends React.Component {
       screenNode = (
         <div className={style.panel}>
           <Matrix
-            matrix={props.matrix}
-            cur={props.cur}
-            reset={props.reset}
+            matrix={this.props.matrix}
+            cur={this.props.cur}
+            reset={this.props.reset}
           />
-          <Logo cur={!!props.cur} reset={props.reset} />
+          <Logo cur={!!this.props.cur} reset={this.props.reset} />
           <div className={style.state}>
-            <Point cur={!!props.cur} point={props.points} max={props.max} />
-            <p>{props.cur ? i18n.cleans[lan] : i18n.startLine[lan]}</p>
-            <Number number={props.cur ? props.clearLines : props.startLines} />
+            <Point cur={!!this.props.cur} point={this.props.points} max={this.props.max} />
+            <p>{this.props.cur ? i18n.cleans[lan] : i18n.startLine[lan]}</p>
+            <Number number={this.props.cur ? this.props.clearLines : this.props.startLines} />
             <p>{i18n.level[lan]}</p>
             <Number
-              number={props.cur ? props.speedRun : props.speedStart}
+              number={this.props.cur ? this.props.speedRun : this.props.speedStart}
               length={1}
             />
             <p>{i18n.next[lan]}</p>
-            <Next data={props.next} />
+            <Next data={this.props.next} />
             <div className={style.bottom}>
-              <Music data={props.music} />
-              <Pause data={props.pause} />
+              <Music data={this.props.music} />
+              <Pause data={this.props.pause} />
               <Number time />
             </div>
           </div>
         </div>
       );
-      keyboardNode = <Keyboard filling={filling} keyboard={props.keyboard} />;
+      keyboardNode = <Keyboard filling={filling} keyboard={this.props.keyboard} />;
     }
 
     return (
@@ -169,7 +169,7 @@ class App extends React.Component {
         className={style.app}
         style={size}
       >
-        <div className={classnames({ [style.rect]: true, [style.drop]: props.drop })}>
+        <div className={classnames({ [style.rect]: true, [style.drop]: this.props.drop })}>
           <Decorate />
           <div className={style.screen}>
             {screenNode}
