@@ -21,3 +21,6 @@ export const KEY_RESET = 'KEY_RESET';
 export const KEY_MUSIC = 'KEY_MUSIC';
 export const KEY_PAUSE = 'KEY_PAUSE';
 export const FOCUS = 'FOCUS';
+export const ADD_HISTORY = 'ADD_HISTORY';
+export const RESET_HISTORY = 'RESET_HISTORY';
+export const SET_REVIEW = 'SET_REVIEW';

@@ -108,6 +108,26 @@ function focus(data) {
   };
 }
 
+function addHistory(data) {
+  return {
+    type: reducerType.ADD_HISTORY,
+    data,
+  };
+}
+
+function resetHistory() {
+  return {
+    type: reducerType.RESET_HISTORY,
+  };
+}
+
+function setReview(data) {
+  return {
+    type: reducerType.SET_REVIEW,
+    data,
+  };
+}
+
 export default {
   nextBlock,
   moveBlock,
@@ -125,4 +145,7 @@ export default {
   keyboard,
   music,
   focus,
+  addHistory,
+  resetHistory,
+  setReview,
 };

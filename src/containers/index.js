@@ -17,7 +17,7 @@ import Keyboard from '../components/keyboard';
 import Guide from '../components/guide';
 
 import { transform, lastRecord, speeds, i18n, lan } from '../unit/const';
-import { visibilityChangeEvent, isFocus } from '../unit/';
+import { visibilityChangeEvent, isFocus, calculateHoles } from '../unit/';
 import states from '../control/states';
 
 class App extends React.Component {
@@ -59,7 +59,102 @@ class App extends React.Component {
       h: document.documentElement.clientHeight,
     });
   }
+
+  renderReview() {
+    let filling = 0;
+    const size = (() => {
+      const w = this.state.w;
+      const h = this.state.h;
+      const ratio = h / w;
+      let scale;
+      let css = {};
+      if (ratio < 1.5) {
+        scale = h / 960;
+      } else {
+        scale = w / 640;
+        filling = (h - (960 * scale)) / scale / 3;
+        css = {
+          paddingTop: Math.floor(filling) + 42,
+          paddingBottom: Math.floor(filling),
+          marginTop: Math.floor(-480 - (filling * 1.5)),
+        };
+      }
+      css[transform] = `scale(${scale})`;
+      return css;
+    })();
+
+    const { review, history } = this.props;
+    const step = review.get('step');
+    const historyState = history.get(step);
+    if (!historyState) {
+      return null;
+    }
+    const matrix = historyState.get('matrix');
+    const cur = historyState.get('cur');
+    const points = historyState.get('points');
+    const clearLines = historyState.get('clearLines');
+    const speedRun = historyState.get('speedRun');
+    const next = historyState.get('next');
+
+    return (
+      <div
+        className={style.app}
+        style={size}
+      >
+        <div className={classnames({ [style.rect]: true, [style.drop]: this.props.drop })}>
+          <Decorate />
+          <div className={style.screen}>
+            <div className={style.panel}>
+              <Matrix
+                matrix={matrix}
+                cur={cur}
+                reset={false}
+              />
+              <div className={style.state}>
+                <p>{`Reviewing Step: ${step + 1} / ${history.size}`}</p>
+                <p>{i18n.cleans[lan]}</p>
+                <Number number={clearLines} />
+                <p>{i18n.level[lan]}</p>
+                <Number
+                  number={speedRun}
+                  length={1}
+                />
+                <p>{i18n.next[lan]}</p>
+                <Next data={next} />
+                 <p>Score</p>
+                <Number number={points} />
+                <p>Holes: {calculateHoles(matrix)}</p>
+                { step > 0 && <p>Feedback: {
+                    (() => {
+                      const prevMatrix = history.get(step - 1).get('matrix');
+                      const currentHoles = calculateHoles(matrix);
+                      const prevHoles = calculateHoles(prevMatrix);
+                      const diff = currentHoles - prevHoles;
+                      if (diff > 0) {
+                        return `+${diff} new holes`;
+                      } else if (diff < 0) {
+                        return `${-diff} holes filled`;
+                      } else {
+                        return 'No new holes';
+                      }
+                    })()
+                  }</p>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+        <Keyboard filling={filling} keyboard={this.props.keyboard} review={review} history={history} />
+        <Guide />
+      </div>
+    );
+  }
+
   render() {
+    if (this.props.review.get('on')) {
+      return this.renderReview();
+    }
+
     let filling = 0;
     const size = (() => {
       const w = this.state.w;
@@ -140,6 +235,8 @@ App.propTypes = {
   reset: propTypes.bool.isRequired,
   drop: propTypes.bool.isRequired,
   keyboard: propTypes.object.isRequired,
+  review: propTypes.object.isRequired,
+  history: propTypes.object.isRequired,
 };
 
 const mapStateToProps = (state) => ({
@@ -157,6 +254,8 @@ const mapStateToProps = (state) => ({
   reset: state.get('reset'),
   drop: state.get('drop'),
   keyboard: state.get('keyboard'),
+  review: state.get('review'),
+  history: state.get('history'),
 });
 
 export default connect(mapStateToProps)(App);

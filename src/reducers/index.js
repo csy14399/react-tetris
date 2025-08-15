@@ -15,6 +15,8 @@ import reset from './reset';
 import drop from './drop';
 import keyboard from './keyboard';
 import focus from './focus';
+import history from './history';
+import review from './review';
 
 
 const rootReducer = combineReducers({
@@ -34,6 +36,8 @@ const rootReducer = combineReducers({
   drop,
   keyboard,
   focus,
+  history,
+  review,
 });
 
 export default rootReducer;

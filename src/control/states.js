@@ -46,6 +46,8 @@ const states = {
     if (music.start) {
       music.start();
     }
+    store.dispatch(actions.resetHistory());
+    store.dispatch(actions.setReview({ on: false, step: 0 }));
     const state = store.getState();
     states.dispatchPoints(0);
     store.dispatch(actions.speedRun(state.get('speedStart')));
@@ -92,6 +94,8 @@ const states = {
 
   // 一个方块结束, 触发下一个
   nextAround: (matrix, stopDownTrigger) => {
+    const state = store.getState();
+    store.dispatch(actions.addHistory(state.toJS()));
     clearTimeout(states.fallInterval);
     store.dispatch(actions.lock(true));
     store.dispatch(actions.matrix(matrix));

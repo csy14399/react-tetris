@@ -1,14 +1,15 @@
 import React from 'react';
 import Immutable from 'immutable';
 import propTypes from 'prop-types';
-
+import { connect } from 'react-redux';
+import actions from '../../actions';
 import style from './index.less';
 import Button from './button';
 import store from '../../store';
 import todo from '../../control/todo';
 import { i18n, lan } from '../../unit/const';
 
-export default class Keyboard extends React.Component {
+class Keyboard extends React.Component {
   componentDidMount() {
     const touchEventCatch = {}; // 对于手机操作, 触发了touchstart, 将作出记录, 不再触发后面的mouse事件
 
@@ -40,6 +41,10 @@ export default class Keyboard extends React.Component {
       }
     }, true);
 
+    if (this.props.review && this.props.review.get('on')) {
+      return;
+    }
+
     Object.keys(todo).forEach((key) => {
       this[`dom_${key}`].dom.addEventListener('mousedown', () => {
         if (touchEventCatch[key] === true) {
@@ -70,10 +75,72 @@ export default class Keyboard extends React.Component {
       }, true);
     });
   }
-  shouldComponentUpdate({ keyboard, filling }) {
-    return !Immutable.is(keyboard, this.props.keyboard) || filling !== this.props.filling;
+  shouldComponentUpdate({ keyboard, filling, review }) {
+    return !Immutable.is(keyboard, this.props.keyboard) ||
+           filling !== this.props.filling ||
+           !Immutable.is(review, this.props.review);
   }
+
+  prevStep() {
+    const { review, dispatch } = this.props;
+    const step = review.get('step');
+    if (step > 0) {
+      dispatch(actions.setReview({ on: true, step: step - 1 }));
+    }
+  }
+
+  nextStep() {
+    const { review, history, dispatch } = this.props;
+    const step = review.get('step');
+    if (step < history.size - 1) {
+      dispatch(actions.setReview({ on: true, step: step + 1 }));
+    }
+  }
+
+  exitReview() {
+    this.props.dispatch(actions.setReview({ on: false, step: 0 }));
+  }
+
+  renderReviewControls() {
+    return (
+      <div
+        className={style.keyboard}
+        style={{
+          marginTop: 20 + this.props.filling,
+        }}
+      >
+        <Button
+          color="blue"
+          size="s1"
+          top={90}
+          left={284}
+          label="Prev"
+          onClick={this.prevStep.bind(this)}
+        />
+        <Button
+          color="blue"
+          size="s1"
+          top={90}
+          left={464}
+          label="Next"
+          onClick={this.nextStep.bind(this)}
+        />
+        <Button
+          color="red"
+          size="s2"
+          top={0}
+          left={106}
+          label="Exit Review"
+          onClick={this.exitReview.bind(this)}
+        />
+      </div>
+    );
+  }
+
   render() {
+    if (this.props.review && this.props.review.get('on')) {
+      return this.renderReviewControls();
+    }
     const keyboard = this.props.keyboard;
     return (
       <div
@@ -167,4 +234,14 @@ export default class Keyboard extends React.Component {
 Keyboard.propTypes = {
   filling: propTypes.number.isRequired,
   keyboard: propTypes.object.isRequired,
+  review: propTypes.object,
+  history: propTypes.object,
+  dispatch: propTypes.func.isRequired,
 };
+
+const mapStateToProps = (state) => ({
+  review: state.get('review'),
+  history: state.get('history'),
+});
+
+export default connect(mapStateToProps, null, null, { forwardRef: true })(Keyboard);

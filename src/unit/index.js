@@ -98,6 +98,20 @@ const unit = {
   },
   visibilityChangeEvent,
   isFocus,
+  calculateHoles(matrix) {
+    let holes = 0;
+    for (let j = 0; j < 10; j++) { // for each column
+      let foundBlock = false;
+      for (let i = 0; i < 20; i++) { // from top to bottom
+        if (matrix.get(i).get(j) !== 0) {
+          foundBlock = true;
+        } else if (foundBlock && matrix.get(i).get(j) === 0) {
+          holes++;
+        }
+      }
+    }
+    return holes;
+  },
 };
 
 module.exports = unit;
