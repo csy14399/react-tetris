@@ -3,7 +3,7 @@ import cn from 'classnames';
 import propTypes from 'prop-types';
 
 import style from './index.less';
-import { transform } from '../../../unit/const';
+import { transform } from '../../unit/const';
 
 export default class Button extends React.Component {
   shouldComponentUpdate(nextProps) {
@@ -11,12 +11,13 @@ export default class Button extends React.Component {
   }
   render() {
     const {
-      active, color, size, top, left, label, position, arrow,
+      active, color, size, top, left, label, position, arrow, onClick,
     } = this.props;
     return (
       <div
         className={cn({ [style.button]: true, [style[color]]: true, [style[size]]: true })}
         style={{ top, left }}
+        onClick={onClick}
       >
         <i
           className={cn({ [style.active]: active })}
@@ -41,6 +42,10 @@ Button.propTypes = {
   label: propTypes.string.isRequired,
   position: propTypes.bool,
   arrow: propTypes.string,
-  active: propTypes.bool.isRequired,
+  active: propTypes.bool,
+  onClick: propTypes.func,
 };
 
+Button.defaultProps = {
+  active: false,
+};

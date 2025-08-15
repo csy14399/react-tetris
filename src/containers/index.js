@@ -2,7 +2,6 @@ import React from 'react';
 import { connect } from 'react-redux';
 import classnames from 'classnames';
 import propTypes from 'prop-types';
-
 import style from './index.less';
 
 import Matrix from '../components/matrix';
@@ -14,6 +13,7 @@ import Pause from '../components/pause';
 import Point from '../components/point';
 import Logo from '../components/logo';
 import Keyboard from '../components/keyboard';
+import ReviewKeyboard from '../components/review_keyboard';
 import Guide from '../components/guide';
 
 import { transform, lastRecord, speeds, i18n, lan } from '../unit/const';
@@ -32,17 +32,16 @@ class App extends React.Component {
     window.addEventListener('resize', this.resize.bind(this), true);
   }
   componentDidMount() {
-    if (visibilityChangeEvent) { // 将页面的焦点变换写入store
+    if (visibilityChangeEvent) {
       document.addEventListener(visibilityChangeEvent, () => {
         states.focus(isFocus());
       }, false);
     }
 
-    if (lastRecord) { // 读取记录
-      if (lastRecord.cur && !lastRecord.pause) { // 拿到上一次游戏的状态, 如果在游戏中且没有暂停, 游戏继续
+    if (lastRecord) {
+      if (lastRecord.cur && !lastRecord.pause) {
         const speedRun = this.props.speedRun;
-        let timeout = speeds[speedRun - 1] / 2; // 继续时, 给予当前下落速度一半的停留时间
-        // 停留时间不小于最快速的速度
+        let timeout = speeds[speedRun - 1] / 2;
         timeout = speedRun < speeds[speeds.length - 1] ? speeds[speeds.length - 1] : speedRun;
         states.auto(timeout);
       }
@@ -59,110 +58,7 @@ class App extends React.Component {
       h: document.documentElement.clientHeight,
     });
   }
-
-  renderReview() {
-    let filling = 0;
-    const size = (() => {
-      const w = this.state.w;
-      const h = this.state.h;
-      const ratio = h / w;
-      let scale;
-      let css = {};
-      if (ratio < 1.5) {
-        scale = h / 960;
-      } else {
-        scale = w / 640;
-        filling = (h - (960 * scale)) / scale / 3;
-        css = {
-          paddingTop: Math.floor(filling) + 42,
-          paddingBottom: Math.floor(filling),
-          marginTop: Math.floor(-480 - (filling * 1.5)),
-        };
-      }
-      css[transform] = `scale(${scale})`;
-      return css;
-    })();
-
-    const { review, history } = this.props;
-    const step = review.get('step');
-    const historyState = history.get(step);
-    if (!historyState) {
-      return null;
-    }
-    const matrix = historyState.get('matrix');
-    const cur = historyState.get('cur');
-    const points = historyState.get('points');
-    const clearLines = historyState.get('clearLines');
-    const speedRun = historyState.get('speedRun');
-    const next = historyState.get('next');
-
-    return (
-      <div
-        className={style.app}
-        style={size}
-      >
-        <div className={classnames({ [style.rect]: true, [style.drop]: this.props.drop })}>
-          <Decorate />
-          <div className={style.screen}>
-            <div className={style.panel}>
-              <Matrix
-                matrix={matrix}
-                cur={cur}
-                reset={false}
-              />
-              <div className={style.state}>
-                <p>{`Reviewing Step: ${step + 1} / ${history.size}`}</p>
-                <p>{i18n.cleans[lan]}</p>
-                <Number number={clearLines} />
-                <p>{i18n.level[lan]}</p>
-                <Number
-                  number={speedRun}
-                  length={1}
-                />
-                <p>{i18n.next[lan]}</p>
-                <Next data={next} />
-                <p>Score</p>
-                <Number number={points} />
-                <p>Holes: {calculateHoles(matrix)}</p>
-                {step > 0 && (
-                  <p>
-                    Feedback: {
-                      (() => {
-                        const prevMatrix = history.get(step - 1).get('matrix');
-                        const currentHoles = calculateHoles(matrix);
-                        const prevHoles = calculateHoles(prevMatrix);
-                        const diff = currentHoles - prevHoles;
-                        if (diff > 0) {
-                          return `+${diff} new holes`;
-                        }
-                        if (diff < 0) {
-                          return `${-diff} holes filled`;
-                        }
-                        return 'No new holes';
-                      })()
-                    }
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-        <Keyboard
-          filling={filling}
-          keyboard={this.props.keyboard}
-          review={review}
-          history={history}
-        />
-        <Guide />
-      </div>
-    );
-  }
-
   render() {
-    if (this.props.review.get('on')) {
-      return this.renderReview();
-    }
-
     let filling = 0;
     const size = (() => {
       const w = this.state.w;
@@ -185,45 +81,101 @@ class App extends React.Component {
       return css;
     })();
 
+    const { review, history, ...props } = this.props;
+    const isReviewMode = review.get('on');
+    let screenNode;
+    let keyboardNode;
+
+    if (isReviewMode) {
+      const step = review.get('step');
+      const historyState = history.get(step);
+      const reviewMatrix = historyState.get('matrix');
+      const reviewCur = historyState.get('cur');
+      const reviewPoints = historyState.get('points');
+      const reviewClearLines = historyState.get('clearLines');
+      const reviewSpeedRun = historyState.get('speedRun');
+      const reviewNext = historyState.get('next');
+      const currentHoles = calculateHoles(reviewMatrix);
+      let feedback = '';
+      if (step > 0) {
+        const prevMatrix = history.get(step - 1).get('matrix');
+        const prevHoles = calculateHoles(prevMatrix);
+        const diff = currentHoles - prevHoles;
+        if (diff > 0) {
+          feedback = `+${diff} new holes`;
+        } else if (diff < 0) {
+          feedback = `${-diff} holes filled`;
+        } else {
+          feedback = 'No new holes';
+        }
+      }
+
+      screenNode = (
+        <div className={style.panel}>
+          <Matrix
+            matrix={reviewMatrix}
+            cur={reviewCur}
+            reset={false}
+          />
+          <div className={style.state}>
+            <p>{`Reviewing Step: ${step + 1} / ${history.size}`}</p>
+            <p>{i18n.cleans[lan]}</p>
+            <Number number={reviewClearLines} />
+            <p>{i18n.level[lan]}</p>
+            <Number number={reviewSpeedRun} length={1} />
+            <p>{i18n.next[lan]}</p>
+            <Next data={reviewNext} />
+            <p>Score</p>
+            <Number number={reviewPoints} />
+            <p>Holes: {currentHoles}</p>
+            {feedback && <p>Feedback: {feedback}</p>}
+          </div>
+        </div>
+      );
+      keyboardNode = <ReviewKeyboard filling={filling} />;
+    } else {
+      screenNode = (
+        <div className={style.panel}>
+          <Matrix
+            matrix={props.matrix}
+            cur={props.cur}
+            reset={props.reset}
+          />
+          <Logo cur={!!props.cur} reset={props.reset} />
+          <div className={style.state}>
+            <Point cur={!!props.cur} point={props.points} max={props.max} />
+            <p>{props.cur ? i18n.cleans[lan] : i18n.startLine[lan]}</p>
+            <Number number={props.cur ? props.clearLines : props.startLines} />
+            <p>{i18n.level[lan]}</p>
+            <Number
+              number={props.cur ? props.speedRun : props.speedStart}
+              length={1}
+            />
+            <p>{i18n.next[lan]}</p>
+            <Next data={props.next} />
+            <div className={style.bottom}>
+              <Music data={props.music} />
+              <Pause data={props.pause} />
+              <Number time />
+            </div>
+          </div>
+        </div>
+      );
+      keyboardNode = <Keyboard filling={filling} keyboard={props.keyboard} />;
+    }
+
     return (
       <div
         className={style.app}
         style={size}
       >
-        <div className={classnames({ [style.rect]: true, [style.drop]: this.props.drop })}>
+        <div className={classnames({ [style.rect]: true, [style.drop]: props.drop })}>
           <Decorate />
           <div className={style.screen}>
-            <div className={style.panel}>
-              <Matrix
-                matrix={this.props.matrix}
-                cur={this.props.cur}
-                reset={this.props.reset}
-              />
-              <Logo cur={!!this.props.cur} reset={this.props.reset} />
-              <div className={style.state}>
-                <Point cur={!!this.props.cur} point={this.props.points} max={this.props.max} />
-                <p>{ this.props.cur ? i18n.cleans[lan] : i18n.startLine[lan] }</p>
-                <Number number={this.props.cur ? this.props.clearLines : this.props.startLines} />
-                <p>{i18n.level[lan]}</p>
-                <Number
-                  number={this.props.cur ? this.props.speedRun : this.props.speedStart}
-                  length={1}
-                />
-                <p>{i18n.next[lan]}</p>
-                <Next data={this.props.next} />
-                <div className={style.bottom}>
-                  <Music data={this.props.music} />
-                  <Pause data={this.props.pause} />
-                  <Number time />
-                </div>
-              </div>
-            </div>
+            {screenNode}
           </div>
         </div>
-        <Keyboard
-          filling={filling}
-          keyboard={this.props.keyboard}
-        />
+        {keyboardNode}
         <Guide />
       </div>
     );
@@ -251,8 +203,8 @@ App.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  pause: state.get('pause'),
   music: state.get('music'),
+  pause: state.get('pause'),
   matrix: state.get('matrix'),
   next: state.get('next'),
   cur: state.get('cur'),
