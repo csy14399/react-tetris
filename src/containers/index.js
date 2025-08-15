@@ -124,27 +124,35 @@ class App extends React.Component {
                  <p>Score</p>
                 <Number number={points} />
                 <p>Holes: {calculateHoles(matrix)}</p>
-                { step > 0 && <p>Feedback: {
-                    (() => {
-                      const prevMatrix = history.get(step - 1).get('matrix');
-                      const currentHoles = calculateHoles(matrix);
-                      const prevHoles = calculateHoles(prevMatrix);
-                      const diff = currentHoles - prevHoles;
-                      if (diff > 0) {
-                        return `+${diff} new holes`;
-                      } else if (diff < 0) {
-                        return `${-diff} holes filled`;
-                      } else {
+                {step > 0 && (
+                  <p>
+                    Feedback: {
+                      (() => {
+                        const prevMatrix = history.get(step - 1).get('matrix');
+                        const currentHoles = calculateHoles(matrix);
+                        const prevHoles = calculateHoles(prevMatrix);
+                        const diff = currentHoles - prevHoles;
+                        if (diff > 0) {
+                          return `+${diff} new holes`;
+                        }
+                        if (diff < 0) {
+                          return `${-diff} holes filled`;
+                        }
                         return 'No new holes';
-                      }
-                    })()
-                  }</p>
-                }
+                      })()
+                    }
+                  </p>
+                )}
               </div>
             </div>
           </div>
         </div>
-        <Keyboard filling={filling} keyboard={this.props.keyboard} review={review} history={history} />
+        <Keyboard
+          filling={filling}
+          keyboard={this.props.keyboard}
+          review={review}
+          history={history}
+        />
         <Guide />
       </div>
     );
@@ -212,7 +220,10 @@ class App extends React.Component {
             </div>
           </div>
         </div>
-        <Keyboard filling={filling} keyboard={this.props.keyboard} />
+        <Keyboard
+          filling={filling}
+          keyboard={this.props.keyboard}
+        />
         <Guide />
       </div>
     );

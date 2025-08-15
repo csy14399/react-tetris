@@ -10,12 +10,13 @@ const ZDF = i18n.highestScore[lan];
 const SLDF = i18n.lastRound[lan];
 
 class Point extends React.Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
       label: '',
       number: 0,
     };
+    this.review = this.review.bind(this);
   }
   componentWillMount() {
     this.onChange(this.props);
@@ -62,9 +63,9 @@ class Point extends React.Component {
         <p>{ZDF}</p>
         <Number number={this.state.number} />
         <div className="buttons">
-            <button onClick={this.review.bind(this)}>
-                Review Game
-            </button>
+          <button onClick={this.review}>
+            Review Game
+          </button>
         </div>
       </div>
     );

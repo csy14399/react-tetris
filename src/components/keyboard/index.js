@@ -10,6 +10,12 @@ import todo from '../../control/todo';
 import { i18n, lan } from '../../unit/const';
 
 class Keyboard extends React.Component {
+  constructor(props) {
+    super(props);
+    this.prevStep = this.prevStep.bind(this);
+    this.nextStep = this.nextStep.bind(this);
+    this.exitReview = this.exitReview.bind(this);
+  }
   componentDidMount() {
     const touchEventCatch = {}; // 对于手机操作, 触发了touchstart, 将作出记录, 不再触发后面的mouse事件
 
@@ -115,7 +121,7 @@ class Keyboard extends React.Component {
           top={90}
           left={284}
           label="Prev"
-          onClick={this.prevStep.bind(this)}
+          onClick={this.prevStep}
         />
         <Button
           color="blue"
@@ -123,7 +129,7 @@ class Keyboard extends React.Component {
           top={90}
           left={464}
           label="Next"
-          onClick={this.nextStep.bind(this)}
+          onClick={this.nextStep}
         />
         <Button
           color="red"
@@ -131,7 +137,7 @@ class Keyboard extends React.Component {
           top={0}
           left={106}
           label="Exit Review"
-          onClick={this.exitReview.bind(this)}
+          onClick={this.exitReview}
         />
       </div>
     );
