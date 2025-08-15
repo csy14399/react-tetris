@@ -121,7 +121,7 @@ class App extends React.Component {
                 />
                 <p>{i18n.next[lan]}</p>
                 <Next data={next} />
-                 <p>Score</p>
+                <p>Score</p>
                 <Number number={points} />
                 <p>Holes: {calculateHoles(matrix)}</p>
                 {step > 0 && (
